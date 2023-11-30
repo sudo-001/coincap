@@ -24,4 +24,15 @@ class HTTPService {
       print(e);
     }
   }
+
+  Future<Response?> getCoinsName(String _path) async {
+    try {
+      String _url = "$_base_url$_path";
+      Response _response = await dio.get(_url);
+      return _response;
+    } catch (e) {
+      print("HTTPService: unabe to perform getCoinsName request.");
+      print(e);
+    }
+  }
 }

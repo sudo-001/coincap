@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:coincapp/pages/details_page.dart';
 import 'package:coincapp/services/http_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -11,6 +12,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   double? _deviceHeight, _deviceWidth;
+  String? _coin = "bitcoin";
 
   HTTPService? _http;
 
@@ -41,25 +43,37 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _selectedCoincDropdown() {
-    List<String> _coins = ["bitcoin"];
+    List<String> _coins = [
+      "bitcoin",
+      "ethereum",
+      "dogai",
+      "encoins",
+      "tether",
+      "ripple",
+      "cardano"
+    ];
     List<DropdownMenuItem<String>> _items = _coins.map((_item) {
       return DropdownMenuItem(
         value: _item,
         child: Text(
           _item,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
-            fontSize: 40,
-            fontWeight: FontWeight.w600,
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
           ),
         ),
       );
     }).toList();
 
     return DropdownButton(
-      value: _coins.first,
+      value: _coin,
       items: _items,
-      onChanged: (_value) {},
+      onChanged: (dynamic _value) {
+        setState(() {
+          _coin = _value;
+        });
+      },
       dropdownColor: const Color.fromRGBO(83, 88, 206, 1.0),
       iconSize: 30,
       icon: const Icon(
@@ -72,7 +86,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _dataWidgets() {
     return FutureBuilder(
-        future: _http!.get("/coins/bitcoin"),
+        future: _http!.get("/coins/$_coin"),
         builder: (BuildContext _context, AsyncSnapshot _snapshot) {
           if (_snapshot.hasData) {
             Map _data = jsonDecode(_snapshot.data.toString());
@@ -81,13 +95,27 @@ class _HomePageState extends State<HomePage> {
             num _change24 = _data["market_data"]["price_change_percentage_24h"];
             String _image = _data["image"]["large"];
             String _description = _data["description"]["en"];
+            Map _current_price = _data["market_data"]["current_price"];
 
             return Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _coinImageWidget(_image),
+                GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (BuildContext _context) {
+                            return DetailsPage(
+                              coinData: _current_price,
+                            );
+                          },
+                        ),
+                      );
+                    },
+                    child: _coinImageWidget(_image)),
                 _currentPriceWidget(_usdPrice, _eurPrice),
                 _percentageChangeWidget(_change24),
                 _coinDescriptionCardWidget(_description),
